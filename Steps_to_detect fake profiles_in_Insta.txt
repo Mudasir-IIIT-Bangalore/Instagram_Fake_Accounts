@@ -1,7 +1,4 @@
-import warnings
-warnings.filterwarnings("ignore")
-
-Import data and bibliography
+#Import data and bibliography
 
 
 import pandas as pd
