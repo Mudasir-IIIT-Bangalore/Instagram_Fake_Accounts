@@ -1,0 +1,153 @@
+import warnings
+warnings.filterwarnings("ignore")
+
+Import data and bibliography
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+sns.set_style("darkgrid")
+sns.set_palette("pastel")
+plt.rcParams.update({'font.size': 20})
+
+import tensorflow as tf
+from tensorflow.keras.layers import Dense, Dropout
+
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report,accuracy_score,roc_curve,confusion_matrix
+
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+
+------------------------------------------------------------------------
+# Load the training dataset # Load data for testing
+
+train = pd.read_csv("train.csv")
+
+
+test = pd.read_csv("test.csv")
+
+
+------------------------------------------------------------------------
+
+Conducting exploratory data analysis
+# Getting information about the dataframe
+
+
+train.info()
+
+------------------------------------------------------------------------
+# Get a statistical summary for a dataframe
+train.describe()
+
+------------------------------------------------------------------------
+
+Performing data visualization
+# Visualize data
+plt.figure(figsize=(20,10))
+sns.countplot(train["fake"])
+plt.show("png")
+
+------------------------------------------------------------------------
+# Data visualization of the private column
+plt.figure(figsize=(20,10))
+sns.countplot(train["private"])
+plt.show("png")
+------------------------------------------------------------------------
+# Visualize the data of the "profile pic" column
+plt.figure(figsize=(20,10))
+sns.countplot(train["profile pic"])
+plt.show("png")
+
+------------------------------------------------------------------------
+# Data visualization
+fake = train[train["fake"] == 1]
+not_fake = train[train["fake"] == 0]
+fig = plt.figure(figsize = (20, 10))
+sns.distplot(fake["nums/length username"], label = "fake")
+sns.distplot(not_fake["nums/length username"], label = "not fake")
+fig.legend()
+plt.show("png")
+
+------------------------------------------------------------------------
+# Plot Correlation
+plt.figure(figsize=(20, 20))
+cm = train.corr()
+ax = plt.subplot()
+sns.heatmap(cm, annot = True, ax = ax)
+plt.show("png")
+------------------------------------------------------------------------
+
+Preparing data for modeling
+# Training and testing dataset (input)
+X_train = train.drop(columns = ['fake'])
+X_test = test.drop(columns = ['fake'])
+
+# Training and testing dataset (output)
+y_train = train['fake']
+y_test = test['fake']
+
+X_train.shape, y_train.shape, X_test.shape, y_test.shape
+---------------------------------------------------------------------------
+
+
+# Scale the data before training the model
+scaler_x = StandardScaler()
+X_train = scaler_x.fit_transform(X_train)
+X_test = scaler_x.transform(X_test)
+---------------------------------------------------------------------------
+y_train = tf.keras.utils.to_categorical(y_train, num_classes = 2)
+y_test = tf.keras.utils.to_categorical(y_test, num_classes = 2)
+
+
+---------------------------------------------------------------------------
+Building and training a simple deep learning model
+model = Sequential()
+model.add(Dense(50, input_dim = 11, activation = 'relu'))
+model.add(Dense(150, activation = 'relu'))
+model.add(Dropout(0.3))
+model.add(Dense(25, activation = 'relu'))
+model.add(Dropout(0.3))
+model.add(Dense(2, activation = 'softmax'))
+model.summary()
+
+---------------------------------------------------------------------------
+model.compile(optimizer = 'adam', loss = 'categorical_crossentropy', metrics = ['accuracy'])
+
+---------------------------------------------------------------------------
+epochs_hist = model.fit(X_train, y_train, epochs = 20,  verbose = 1, validation_split = 0.1)
+
+
+
+---------------------------------------------------------------------------
+Evaluate the trained model
+print(epochs_hist.history.keys())
+---------------------------------------------------------------------------
+
+
+predicted = model.predict(X_test)
+
+---------------------------------------------------------------------------
+
+predicted_value = []
+test = []
+for i in predicted:
+    predicted_value.append(np.argmax(i))
+    
+for i in y_test:
+    test.append(np.argmax(i))
+print(classification_report(test, predicted_value))
+---------------------------------------------------------------------------
+
+plt.figure(figsize=(6, 6))
+cm = confusion_matrix(test, predicted_value)
+sns.heatmap(cm, annot=True)
+plt.show("png")
+
+---------------------------------------------------------------------------
+
+
+---------------------------------------------------------------------------
